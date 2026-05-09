@@ -27,20 +27,23 @@ app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 let server;
-if (process.env.NODE_ENV !== 'production') {
+
+// Only start the server if not running on Vercel
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   server = app.listen(PORT, () => {
     console.log(`FoodHaven backend running on port ${PORT}`);
   });
 } else {
+  // In production/Vercel, we don't call app.listen()
+  // Vercel handles the server lifecycle
   server = require('http').createServer(app);
-  server.listen(PORT);
 }
 
-// Socket.io Setup
+// Socket.io Setup - Note: This will not work on standard Vercel Serverless Functions
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
-    origin: "*", // allow all origins for demo
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"]
   }
 });
