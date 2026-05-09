@@ -20,13 +20,18 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/upload', authMiddleware, adminMiddleware, (req, res) => {
+  console.log('[Upload] Starting image processing...');
   upload.single('image')(req, res, (err) => {
     if (err) {
+      console.error('[Upload Error]', err.message);
       return res.status(400).json({ message: err.message });
     }
     if (!req.file) {
-      return res.status(400).json({ message: 'Image file is required' });
+      console.error('[Upload Error] No file in request');
+      return res.status(400).json({ message: 'No file received.' });
     }
+    
+    console.log('[Upload Success]', req.file.filename);
     const imageUrl = `/uploads/${req.file.filename}`;
     res.status(201).json({ imageUrl });
   });

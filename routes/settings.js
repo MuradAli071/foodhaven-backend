@@ -37,9 +37,16 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 
 // Admin route to upload hero background
 router.post('/upload-hero', authMiddleware, adminMiddleware, (req, res) => {
+  console.log('[Hero Upload] Starting...');
   upload.single('image')(req, res, async (err) => {
-    if (err) return res.status(400).json({ message: err.message });
-    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+    if (err) {
+      console.error('[Hero Upload Error]', err.message);
+      return res.status(400).json({ message: err.message });
+    }
+    if (!req.file) {
+      console.error('[Hero Upload Error] No file');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
 
     const imageUrl = `/uploads/${req.file.filename}`;
     
@@ -49,8 +56,10 @@ router.post('/upload-hero', authMiddleware, adminMiddleware, (req, res) => {
         { value: imageUrl },
         { upsert: true }
       );
+      console.log('[Hero Upload Success]', imageUrl);
       res.json({ imageUrl });
     } catch (error) {
+      console.error('[Hero Save Error]', error.message);
       res.status(500).json({ message: 'Failed to save background image' });
     }
   });
