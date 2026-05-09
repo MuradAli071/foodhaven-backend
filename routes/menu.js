@@ -19,24 +19,37 @@ router.get('/:id', async (req, res) => {
   res.json(item);
 });
 
+// TEST ROUTE: Public upload without auth (FOR DEBUGGING ONLY)
+router.post('/test-upload', (req, res) => {
+  console.log('[DEBUG] Test upload received');
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      console.error('[DEBUG Error]', err.message);
+      return res.status(400).json({ message: `DEBUG: ${err.message}` });
+    }
+    if (!req.file) {
+      console.error('[DEBUG Error] No file');
+      return res.status(400).json({ message: 'DEBUG: No file received' });
+    }
+    console.log('[DEBUG Success]', req.file.filename);
+    res.json({ imageUrl: `/uploads/${req.file.filename}` });
+  });
+});
+
 router.post('/upload', authMiddleware, adminMiddleware, (req, res) => {
+  console.log('[Upload] Request reached menu/upload');
   upload.single('image')(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
-      console.error('[Multer Error]', err.message);
-      return res.status(400).json({ message: `Upload error: ${err.message}` });
-    } else if (err) {
-      // An unknown error occurred when uploading.
-      console.error('[Unknown Upload Error]', err.message);
+    if (err) {
+      console.error('[Upload Error Logic]', err.message);
       return res.status(400).json({ message: err.message });
     }
 
     if (!req.file) {
-      console.error('[Upload Error] No file received');
-      return res.status(400).json({ message: 'No file received. Please select an image.' });
+      console.error('[Upload Error Logic] No file');
+      return res.status(400).json({ message: 'No file received.' });
     }
 
-    console.log('[Upload Success]', req.file.filename);
+    console.log('[Upload Success Logic]', req.file.filename);
     const imageUrl = `/uploads/${req.file.filename}`;
     res.status(201).json({ imageUrl });
   });
