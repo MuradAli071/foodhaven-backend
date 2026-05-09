@@ -37,15 +37,18 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 
 // Admin route to upload hero background
 router.post('/upload-hero', authMiddleware, adminMiddleware, (req, res) => {
-  console.log('[Hero Upload] Starting...');
   upload.single('image')(req, res, async (err) => {
-    if (err) {
-      console.error('[Hero Upload Error]', err.message);
+    if (err instanceof multer.MulterError) {
+      console.error('[Hero Multer Error]', err.message);
+      return res.status(400).json({ message: `Upload error: ${err.message}` });
+    } else if (err) {
+      console.error('[Hero Unknown Error]', err.message);
       return res.status(400).json({ message: err.message });
     }
+
     if (!req.file) {
       console.error('[Hero Upload Error] No file');
-      return res.status(400).json({ message: 'No file uploaded' });
+      return res.status(400).json({ message: 'No file received' });
     }
 
     const imageUrl = `/uploads/${req.file.filename}`;

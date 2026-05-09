@@ -20,17 +20,22 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/upload', authMiddleware, adminMiddleware, (req, res) => {
-  console.log('[Upload] Starting image processing...');
-  upload.single('image')(req, res, (err) => {
-    if (err) {
-      console.error('[Upload Error]', err.message);
+  upload.single('image')(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading.
+      console.error('[Multer Error]', err.message);
+      return res.status(400).json({ message: `Upload error: ${err.message}` });
+    } else if (err) {
+      // An unknown error occurred when uploading.
+      console.error('[Unknown Upload Error]', err.message);
       return res.status(400).json({ message: err.message });
     }
+
     if (!req.file) {
-      console.error('[Upload Error] No file in request');
-      return res.status(400).json({ message: 'No file received.' });
+      console.error('[Upload Error] No file received');
+      return res.status(400).json({ message: 'No file received. Please select an image.' });
     }
-    
+
     console.log('[Upload Success]', req.file.filename);
     const imageUrl = `/uploads/${req.file.filename}`;
     res.status(201).json({ imageUrl });
